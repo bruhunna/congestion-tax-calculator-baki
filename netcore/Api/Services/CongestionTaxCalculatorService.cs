@@ -1,6 +1,8 @@
-using System;
-using congestion.calculator;
-public class CongestionTaxCalculator
+using Api.Models;
+using Api.Services.Interfaces;
+
+namespace Api.Services;
+public class CongestionTaxCalculatorService : ICongestionTaxCalculatorService
 {
     /**
          * Calculate the total toll fee for one day
@@ -10,7 +12,7 @@ public class CongestionTaxCalculator
          * @return - the total congestion tax for that day
          */
 
-    public int GetTax(Vehicle vehicle, DateTime[] dates)
+    public async Task<int> GetTax(Vehicle vehicle, DateTime[] dates)
     {
         DateTime intervalStart = dates[0];
         int totalFee = 0;
@@ -34,19 +36,26 @@ public class CongestionTaxCalculator
             }
         }
         if (totalFee > 60) totalFee = 60;
+        Console.WriteLine(3);
         return totalFee;
     }
 
     private bool IsTollFreeVehicle(Vehicle vehicle)
     {
-        if (vehicle == null) return false;
-        String vehicleType = vehicle.GetVehicleType();
-        return vehicleType.Equals(TollFreeVehicles.Motorcycle.ToString()) ||
-               vehicleType.Equals(TollFreeVehicles.Tractor.ToString()) ||
-               vehicleType.Equals(TollFreeVehicles.Emergency.ToString()) ||
-               vehicleType.Equals(TollFreeVehicles.Diplomat.ToString()) ||
-               vehicleType.Equals(TollFreeVehicles.Foreign.ToString()) ||
-               vehicleType.Equals(TollFreeVehicles.Military.ToString());
+        var vehicleType = vehicle.VehiclesType;
+        if (vehicleType == VehiclesType.Motorcycle ||
+            vehicleType == VehiclesType.Tractor ||
+            vehicleType == VehiclesType.Emergency ||
+            vehicleType == VehiclesType.Diplomat ||
+            vehicleType == VehiclesType.Foreign ||
+            vehicleType == VehiclesType.Military)
+        {
+            return true;
+        }
+        else
+        {
+            return false;
+        }
     }
 
     public int GetTollFee(DateTime date, Vehicle vehicle)
@@ -93,13 +102,13 @@ public class CongestionTaxCalculator
         return false;
     }
 
-    private enum TollFreeVehicles
-    {
-        Motorcycle = 0,
-        Tractor = 1,
-        Emergency = 2,
-        Diplomat = 3,
-        Foreign = 4,
-        Military = 5
-    }
+    //private enum TollFreeVehicles
+    //{
+    //    Motorcycle = 0,
+    //    Tractor = 1,
+    //    Emergency = 2,
+    //    Diplomat = 3,
+    //    Foreign = 4,
+    //    Military = 5
+    //}
 }
