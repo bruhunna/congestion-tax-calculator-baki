@@ -18,8 +18,8 @@ public class CongestionTaxCalculatorService : ICongestionTaxCalculatorService
         int totalFee = 0;
         foreach (DateTime date in dates)
         {
-            int nextFee = GetTollFee(date, vehicle);
-            int tempFee = GetTollFee(intervalStart, vehicle);
+            int nextFee = await GetTollFee(date, vehicle);
+            int tempFee = await GetTollFee(intervalStart, vehicle);
 
             long diffInMillies = date.Millisecond - intervalStart.Millisecond;
             long minutes = diffInMillies / 1000 / 60;
@@ -36,7 +36,6 @@ public class CongestionTaxCalculatorService : ICongestionTaxCalculatorService
             }
         }
         if (totalFee > 60) totalFee = 60;
-        Console.WriteLine(3);
         return totalFee;
     }
 
@@ -58,7 +57,7 @@ public class CongestionTaxCalculatorService : ICongestionTaxCalculatorService
         }
     }
 
-    public int GetTollFee(DateTime date, Vehicle vehicle)
+    public async Task<int> GetTollFee(DateTime date, Vehicle vehicle)
     {
         if (IsTollFreeDate(date) || IsTollFreeVehicle(vehicle)) return 0;
 
@@ -102,13 +101,4 @@ public class CongestionTaxCalculatorService : ICongestionTaxCalculatorService
         return false;
     }
 
-    //private enum TollFreeVehicles
-    //{
-    //    Motorcycle = 0,
-    //    Tractor = 1,
-    //    Emergency = 2,
-    //    Diplomat = 3,
-    //    Foreign = 4,
-    //    Military = 5
-    //}
 }

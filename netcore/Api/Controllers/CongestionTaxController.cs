@@ -17,12 +17,26 @@ namespace Api.Controllers
         }
 
         [HttpGet(Name = "GetCongestionTaxFee")]
-        public async Task<int> GetCogestionTaxFee()
+        public async Task<int> GetCongestionTaxFee([FromQuery] GetCongestionTaxRequest request)
         {
-            var vehicle = new Vehicle(VehiclesType.Car);
+            if (!Enum.TryParse<VehiclesType>(request.VehicleType, true, out VehiclesType parsedVehiclesType))
+            {
+                throw new Exception();
+            }
+
+            if (request.TravelDates == null )
+            {
+                throw new Exception("Dates cannot be null or empty.");
+            }
+
+
+            DateTime[] travelDates = request.TravelDates
+                .Select(date => DateTime.Parse(date))
+                .ToArray();
+
             try
             {
-                return await _congestionTaxCalculatorService.GetTax(vehicle, [DateTime.Parse("2013-02-07 15:27:00")]);
+                return await _congestionTaxCalculatorService.GetTax(new Vehicle(parsedVehiclesType), travelDates);
             }
             catch (Exception e)
             {
