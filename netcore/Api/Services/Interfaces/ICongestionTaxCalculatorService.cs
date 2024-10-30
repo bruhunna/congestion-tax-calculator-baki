@@ -4,6 +4,6 @@ namespace Api.Services.Interfaces
 {
     public interface ICongestionTaxCalculatorService
     {
-        Task<int> GetTax(Vehicle vehicle, DateTime[] dates);
+        int GetTax(VehiclesType vehicleType, IList<string> dates);
     }
 }

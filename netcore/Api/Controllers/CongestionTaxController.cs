@@ -17,9 +17,10 @@ namespace Api.Controllers
         }
 
         [HttpGet(Name = "GetCongestionTaxFee")]
-        public async Task<int> GetCongestionTaxFee([FromQuery] GetCongestionTaxRequest request)
+        public int GetCongestionTaxFee([FromQuery] GetCongestionTaxRequest request) // can think of returning a response entity 
         {
-            if (!Enum.TryParse<VehiclesType>(request.VehicleType, true, out VehiclesType parsedVehiclesType))
+            var isValidVehicleType = Enum.TryParse<VehiclesType>(request.VehicleType, false, out VehiclesType parsedVehiclesType);
+            if (!isValidVehicleType)
             {
                 throw new Exception();
             }
@@ -29,14 +30,12 @@ namespace Api.Controllers
                 throw new Exception("Dates cannot be null or empty.");
             }
 
-
-            DateTime[] travelDates = request.TravelDates
-                .Select(date => DateTime.Parse(date))
-                .ToArray();
-
             try
             {
-                return await _congestionTaxCalculatorService.GetTax(new Vehicle(parsedVehiclesType), travelDates);
+                Console.WriteLine($"Controller calling GetTax with VehicleType: {parsedVehiclesType} and Dates: {string.Join(", ", request.TravelDates)}");
+
+                //return _congestionTaxCalculatorService.GetTax(new Vehicle(parsedVehiclesType), travelDates);
+                return _congestionTaxCalculatorService.GetTax(parsedVehiclesType, request.TravelDates);
             }
             catch (Exception e)
             {

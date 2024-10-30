@@ -12,16 +12,22 @@ public class CongestionTaxCalculatorService : ICongestionTaxCalculatorService
          * @return - the total congestion tax for that day
          */
 
-    public async Task<int> GetTax(Vehicle vehicle, DateTime[] dates)
+    public int GetTax(VehiclesType vehiclesType, IList<string> travelDates)
     {
+        Console.WriteLine($"{vehiclesType}");
+
+        DateTime[] dates = travelDates
+            .Select(date => DateTime.Parse(date))
+            .ToArray();
+
         DateTime intervalStart = dates[0];
         int totalFee = 0;
         foreach (DateTime date in dates)
         {
-            int nextFee = await GetTollFee(date, vehicle);
-            int tempFee = await GetTollFee(intervalStart, vehicle);
-            TimeSpan diffInMillies = date - intervalStart;
-            if (diffInMillies.TotalMinutes <= 60)
+            int nextFee = GetTollFee(date, vehiclesType);
+            int tempFee = GetTollFee(intervalStart, vehiclesType);
+            TimeSpan diffInMin = date - intervalStart;
+            if (diffInMin.TotalMinutes <= 60)
             {
                 if (totalFee > 0) totalFee -= tempFee;
                 if (nextFee >= tempFee) tempFee = nextFee;
@@ -32,44 +38,38 @@ public class CongestionTaxCalculatorService : ICongestionTaxCalculatorService
                 totalFee += nextFee;
             }
         }
+        Console.WriteLine($"Total Fee: {totalFee}");
         if (totalFee > 60) totalFee = 60;
         return totalFee;
     }
 
-    private bool IsTollFreeVehicle(Vehicle vehicle)
+    private bool IsTollFreeVehicle(VehiclesType vehiclesType)
     {
-        var vehicleType = vehicle.VehiclesType;
-        if (vehicleType == VehiclesType.Motorcycle ||
-            vehicleType == VehiclesType.Tractor ||
-            vehicleType == VehiclesType.Emergency ||
-            vehicleType == VehiclesType.Diplomat ||
-            vehicleType == VehiclesType.Foreign ||
-            vehicleType == VehiclesType.Military)
-        {
-            return true;
-        }
-        else
-        {
-            return false;
-        }
+
+        return (vehiclesType == VehiclesType.Motorcycle ||
+                vehiclesType == VehiclesType.Tractor ||
+                vehiclesType == VehiclesType.Emergency ||
+                vehiclesType == VehiclesType.Diplomat ||
+                vehiclesType == VehiclesType.Foreign ||
+                vehiclesType == VehiclesType.Military);
     }
 
-    public async Task<int> GetTollFee(DateTime date, Vehicle vehicle)
+    public int GetTollFee(DateTime date, VehiclesType vehiclesType)
     {
-        if (IsTollFreeDate(date) || IsTollFreeVehicle(vehicle)) return 0;
+        if (IsTollFreeDate(date) || IsTollFreeVehicle(vehiclesType)) return 0;
 
         int hour = date.Hour;
         int minute = date.Minute;
         if (hour == 6 && minute >= 0 && minute <= 29) return 8;
-        else if (hour == 6 && minute >= 30 && minute <= 59) return 13;
-        else if (hour == 7 && minute >= 0 && minute <= 59) return 18;
-        else if (hour == 8 && minute >= 0 && minute <= 29) return 13;
-        else if (hour >= 8 && minute >= 30 || hour <= 14 && minute <= 59) return 8;
-        else if (hour == 15 && minute >= 0 && minute <= 29) return 13;
-        else if (hour == 15 && minute >= 0 || hour == 16 && minute <= 59) return 18;
-        else if (hour == 17 && minute >= 0 && minute <= 59) return 13;
-        else if (hour == 18 && minute >= 0 && minute <= 29) return 8;
-        else return 0;
+        if (hour == 6 && minute >= 30 && minute <= 59) return 13;
+        if (hour == 7 && minute >= 0 && minute <= 59) return 18;
+        if (hour == 8 && minute >= 0 && minute <= 29) return 13;
+        if (hour >= 8 && minute >= 30 || hour <= 14 && minute <= 59) return 8;
+        if (hour == 15 && minute >= 0 && minute <= 29) return 13;
+        if (hour == 15 && minute >= 0 || hour == 16 && minute <= 59) return 18;
+        if (hour == 17 && minute >= 0 && minute <= 59) return 13;
+        if (hour == 18 && minute >= 0 && minute <= 29) return 8;
+        return 0;
     }
 
     private Boolean IsTollFreeDate(DateTime date)
